@@ -11,7 +11,8 @@
 	<groupId>com.roshan</groupId>
 	<artifactId>know-base</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
+    <packaging>pom</packaging>
+    <name/>
 	<description/>
 	<url/>
 	<licenses>
@@ -20,7 +21,13 @@
 	<developers>
 		<developer/>
 	</developers>
-	<scm>
+    <modules>
+        <module>common</module>
+	    <module>infrastructure</module>
+		<module>app</module>
+	    <module>auth</module>
+	</modules>
+    <scm>
 		<connection/>
 		<developerConnection/>
 		<tag/>

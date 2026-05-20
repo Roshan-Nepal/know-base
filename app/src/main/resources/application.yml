@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: know-base
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE}
