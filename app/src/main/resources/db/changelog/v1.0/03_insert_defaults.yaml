@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1-insert-default-into-role
+      author: Roshan Nepal
+      changes:
+        - insert:
+            tableName: roles
+            schemaName: public
+            columns:
+              - column:
+                  name: id
+                  valueComputed: gen_random_uuid()
+              - column:
+                  name: name
+                  value: ROLE_ADMIN
