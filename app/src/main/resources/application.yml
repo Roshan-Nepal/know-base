@@ -13,3 +13,12 @@ spring:
 
   profiles:
     active: ${SPRING_PROFILES_ACTIVE}
+
+app:
+  cors:
+    allowed-origins: ${ALLOWED_ORIGINS}
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
