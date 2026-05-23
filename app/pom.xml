@@ -11,7 +11,6 @@
 
     <artifactId>app</artifactId>
 
-
     <dependencies>
         <dependency>
             <groupId>com.roshan</groupId>
@@ -24,9 +23,9 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
+            <groupId>com.roshan</groupId>
+            <artifactId>auth</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
