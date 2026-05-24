@@ -1,0 +1,86 @@
+package com.roshan.know_base.auth.service;
+
+import com.roshan.know_base.auth.dto.LoginRequest;
+import com.roshan.know_base.auth.dto.RegisterRequest;
+import com.roshan.know_base.auth.dto.TokenResponse;
+import com.roshan.know_base.auth.dto.UserResponse;
+import com.roshan.know_base.auth.entity.Role;
+import com.roshan.know_base.auth.entity.User;
+import com.roshan.know_base.auth.mapper.UserMapper;
+import com.roshan.know_base.auth.repo.RoleRepo;
+import com.roshan.know_base.auth.repo.UserRepo;
+import com.roshan.know_base.common.constant.SecurityConstants;
+import com.roshan.know_base.common.enums.ErrorCode;
+import com.roshan.know_base.common.exception.BadRequestException;
+import com.roshan.know_base.common.exception.NotFoundException;
+import com.roshan.know_base.common.security.JwtUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class AuthServiceImpl implements AuthService{
+    private final UserRepo userRepo;
+    private final RoleRepo roleRepo;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
+    private final JwtUtil jwtUtil;
+
+    @Override
+    @Transactional
+    public UserResponse register(RegisterRequest request) {
+        User user = userMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        Set<Role> roles = request.roles().stream()
+                .map(roleName -> roleRepo.findRoleByName(roleName)
+                        .orElseThrow(() ->
+                                        new BadRequestException("Invalid role provided: " + roleName,
+                                        ErrorCode.INVALID_ROLE,
+                                        HttpStatus.BAD_REQUEST))
+                )
+                .collect(Collectors.toSet());
+        user.setRoles(roles);
+        User savedUser = userRepo.save(user);
+        log.info("User created with id: {}", savedUser.getId());
+        return userMapper.toResponse(savedUser);
+
+    }
+    @Override
+    public TokenResponse login(LoginRequest loginRequest) {
+
+
+        User user = userRepo.findUserByEmail(loginRequest.email())
+                .orElseThrow(() ->
+                        new BadRequestException("Invalid email or password",
+                                ErrorCode.INVALID_CREDENTIAL,
+                                HttpStatus.UNAUTHORIZED
+                        )
+                );
+        if(!passwordEncoder.matches(loginRequest.password(), user.getPassword())){
+            throw  new BadRequestException(
+                    "Invalid email or password",
+                    ErrorCode.INVALID_CREDENTIAL,
+                    HttpStatus.UNAUTHORIZED
+            );
+        }
+        String accessToken = jwtUtil.generateAccessToken(loginRequest.email(),
+                Map.of(SecurityConstants.CLAIM_ROLES, user.getRoles()
+                        .stream()
+                                .map(Role::getName).toList(),
+                        SecurityConstants.CLAIM_USER_ID, user.getId()
+                ));
+        String refreshToken = jwtUtil.generateRefreshToken(loginRequest.email());
+        return new TokenResponse(accessToken, refreshToken);
+    }
+}
