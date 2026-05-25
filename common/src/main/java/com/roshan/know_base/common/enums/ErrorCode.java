@@ -6,5 +6,6 @@ public enum ErrorCode {
     UNAUTHORIZED,
     FORBIDDEN,
     ACCESS_DENIED,
-    INVALID_ROLE
+    INVALID_ROLE,
+    INVALID_CREDENTIAL
 }
