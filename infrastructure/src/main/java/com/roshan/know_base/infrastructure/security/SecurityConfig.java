@@ -1,11 +1,15 @@
-package com.roshan.know_base.infrastructure.config;
+package com.roshan.know_base.infrastructure.security;
 
-import jakarta.servlet.http.HttpServletResponse;
+import com.roshan.know_base.common.constant.SecurityConstants;
+import com.roshan.know_base.common.security.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,11 +20,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtFilter jwtFilter;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
         return http
@@ -33,29 +41,26 @@ public class SecurityConfig {
                                 .policyDirectives("default-src 'self'"))
                 )
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/api/v1/auth/login",
-                                        "/api/v1/auth/register",
-                                        "/api/v1/auth/refresh",
-                                        "/api/v1/auth/test"
+                                .requestMatchers(SecurityConstants.PUBLIC_URLS
                                 ).permitAll()
-                                .requestMatchers("/v3/api-docs/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html")
-                                .permitAll()
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                 .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(((request, response, authException) ->
-                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(httpSession -> httpSession.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(AbstractHttpConfigurer::disable)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception{
+        return configuration.getAuthenticationManager();
+    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
