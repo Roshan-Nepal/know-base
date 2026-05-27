@@ -1,10 +1,11 @@
 package com.roshan.know_base.auth.service;
 
-import com.roshan.know_base.auth.dto.LoginRequest;
-import com.roshan.know_base.auth.dto.RegisterRequest;
-import com.roshan.know_base.auth.dto.TokenResponse;
-import com.roshan.know_base.auth.dto.UserResponse;
+import com.roshan.know_base.auth.dto.*;
+import com.roshan.know_base.auth.entity.User;
+import com.sun.security.auth.UserPrincipal;
+import jakarta.validation.Valid;
 import lombok.NonNull;
+import org.springframework.security.core.Authentication;
 
 public interface AuthService {
 
@@ -12,4 +13,5 @@ public interface AuthService {
 
     TokenResponse login(LoginRequest loginRequest);
 
+    void changePassword(Authentication authentication, @Valid ChangePasswordRequest changePasswordRequest);
 }

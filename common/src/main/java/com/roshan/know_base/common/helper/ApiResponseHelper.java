@@ -22,6 +22,10 @@ public class ApiResponseHelper {
         ApiResponse<Void> response = new ApiResponse<>(null,message, true, LocalDateTime.now());
         return ResponseEntity.ok(response);
     }
+    public static <T> ResponseEntity<ApiResponse<T>> successResponse(T data, String message, HttpStatus status){
+        ApiResponse<T> response = new ApiResponse<>(data,message, true, LocalDateTime.now());
+        return ResponseEntity.status(status).body(response);
+    }
 
     public static <T> ResponseEntity<ApiResponse<PageResponse<T>>> pageResponse(
             Page<T> page,
