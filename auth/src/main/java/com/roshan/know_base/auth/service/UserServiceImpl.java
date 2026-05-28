@@ -27,17 +27,11 @@ public class UserServiceImpl implements UserService{
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<UserResponse> getAll(int pageNumber, int size) {
+    public Page<UserResponse> getAll(int pageNumber, int size) {
         Pageable pageable = PageRequest.of(pageNumber, size);
         Page<UserResponse> page = userRepo.findAll(pageable)
                 .map(mapper::toResponse);
-         return new PageResponse<>(
-                 page.getContent(),
-                 page.getNumber(),
-                 page.getSize(),
-                 page.getTotalElements(),
-                 page.getTotalPages()
-         );
+         return page;
     }
 
     @Override

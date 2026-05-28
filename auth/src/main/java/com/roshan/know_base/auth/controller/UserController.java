@@ -24,10 +24,10 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Get a list of users.")
-    public ResponseEntity<PageResponse<UserResponse>> getAll(
+    public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> getAll(
             @RequestParam(defaultValue = "0") int pageNumber,
             @RequestParam(defaultValue = "10") int size){
-        return ResponseEntity.ok(userService.getAll(pageNumber, size));
+        return ApiResponseHelper.pageResponse(userService.getAll(pageNumber, size), "User fetched successfully.");
 
     }
     @GetMapping("/{id}")

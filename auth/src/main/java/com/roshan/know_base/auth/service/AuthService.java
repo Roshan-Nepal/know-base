@@ -14,4 +14,6 @@ public interface AuthService {
     TokenResponse login(LoginRequest loginRequest);
 
     void changePassword(Authentication authentication, @Valid ChangePasswordRequest changePasswordRequest);
+
+    String refreshToken(String refreshToken);
 }
