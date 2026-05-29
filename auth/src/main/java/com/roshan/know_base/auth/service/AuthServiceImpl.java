@@ -8,6 +8,7 @@ import com.roshan.know_base.auth.repo.RoleRepo;
 import com.roshan.know_base.auth.repo.UserRepo;
 import com.roshan.know_base.common.constant.SecurityConstants;
 import com.roshan.know_base.common.enums.ErrorCode;
+import com.roshan.know_base.common.exception.AuthException;
 import com.roshan.know_base.common.exception.BadRequestException;
 import com.roshan.know_base.common.exception.NotFoundException;
 import com.roshan.know_base.common.security.JwtUtil;
@@ -117,6 +118,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String refreshToken(String refreshToken) {
+        if(refreshToken == null){
+            throw new AuthException("Refresh token is missing",ErrorCode.REFRESH_TOKEN_MISSING, HttpStatus.UNAUTHORIZED);
+        }
         if (!jwtUtil.isTokenValid(refreshToken)) {
             throw new JwtException("Invalid or expired refresh token.");
         }
