@@ -53,7 +53,7 @@ public class AuthController {
     @Operation(summary = "Refresh access token",
             description = "Generates a new access token using the HttpOnly refresh token cookie.")
     public ResponseEntity<ApiResponse<String>> refresh(
-            @CookieValue(name = "refresh_token") String refreshToken) {
+            @CookieValue(name = "refresh_token", required = false) String refreshToken) {
 
         String newAccessToken = authService.refreshToken(refreshToken);
         return ApiResponseHelper.successResponse(newAccessToken, "Token refreshed successfully.");
