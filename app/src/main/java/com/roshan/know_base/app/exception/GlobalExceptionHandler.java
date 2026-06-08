@@ -70,6 +70,7 @@ public class GlobalExceptionHandler {
             case CONFLICT -> "Data Conflict";
             case NOT_FOUND -> "Resource Not Found";
             case INTERNAL_SERVER_ERROR -> "Internal Server Error";
+            case UNPROCESSABLE_CONTENT -> "File Processing Error";
             default -> "Application Error";
 
         };
