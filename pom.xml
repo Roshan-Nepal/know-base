@@ -26,6 +26,7 @@
 	    <module>infrastructure</module>
 		<module>app</module>
 	    <module>auth</module>
+	    <module>document</module>
 	</modules>
     <scm>
 		<connection/>
