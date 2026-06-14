@@ -28,3 +28,7 @@ logging:
     org:
       springframework:
         security: DEBUG
+know-base:
+  storage:
+    local:
+      path: ${STORAGE_PATH}

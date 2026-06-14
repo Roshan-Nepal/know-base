@@ -9,17 +9,13 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <build>
-        <finalName>app</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-    <artifactId>app</artifactId>
+    <artifactId>document</artifactId>
 
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.roshan</groupId>
@@ -31,15 +27,17 @@
             <artifactId>infrastructure</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+
         <dependency>
-            <groupId>com.roshan</groupId>
-            <artifactId>auth</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>3.3.1</version>
         </dependency>
         <dependency>
-            <groupId>com.roshan</groupId>
-            <artifactId>document</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parsers-standard-package</artifactId>
+            <version>3.3.1</version>
         </dependency>
     </dependencies>
+
 </project>
