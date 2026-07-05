@@ -1,9 +1,28 @@
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME=}
+    username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.model.ollama.autoconfigure.OllamaEmbeddingAutoConfiguration
+      - org.springframework.ai.model.ollama.autoconfigure.OllamaChatAutoConfiguration
+      - org.springframework.ai.model.ollama.autoconfigure.OllamaAutoConfiguration
+
+  ai:
+    openai:
+      base-url: https://api.groq.com/openai/v1
+      api-key: ${AI_API_KEY}
+
+      chat:
+        options:
+          model: llama-3.3-70b-versatile
+
+      embedding:
+        options:
+          model: text-embedding-3-small
 springdoc:
   api-docs:
     enabled: false
