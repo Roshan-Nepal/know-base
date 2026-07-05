@@ -1,5 +1,6 @@
 package com.roshan.know_base.auth.service;
 
+import com.roshan.know_base.auth.entity.CustomUserDetails;
 import com.roshan.know_base.auth.entity.User;
 import com.roshan.know_base.auth.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +23,16 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(@NonNull String email) throws UsernameNotFoundException {
-         User user =  userRepo.findUserByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        User user =  userRepo.findUserByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         Collection<GrantedAuthority> roles = user.getRoles()
                 .stream().map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());;
-         return org.springframework.security.core.userdetails.User.builder()
-                 .username(user.getUsername())
-                 .password(user.getPassword())
-                 .authorities(roles)
-                 .build();
+        return CustomUserDetails.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .authorities(roles)
+                .build();
 
     }
 }
