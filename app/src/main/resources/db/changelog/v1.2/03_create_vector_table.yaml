@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 000-enable-pgvector
+      author: Roshan Nepal
+      changes:
+        - sql:
+            sql: |
+              CREATE EXTENSION IF NOT EXISTS vector;
+
+  - changeSet:
+      id: 002-create-vectors
+      author: Roshan Nepal
+      comment: pgvector embeddings table
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE TABLE document_embeddings (
+                id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                chunk_id    UUID NOT NULL REFERENCES document_chunks(id) ON DELETE CASCADE,
+                embedding   vector(768),
+                model_name  VARCHAR(100) NOT NULL DEFAULT 'text-embedding',
+                created_at  TIMESTAMP DEFAULT now()
+              );
+
+  #Create an HNSW (Hierarchical Navigable Small World) index.
+  #Without this, cosine similarity searches
+  #require a full table scan, which gets incredibly slow as your
+  - changeSet:
+      id: 003-create-document-embeddings-hnsw-index
+      author: Roshan Nepal
+      comment: Create HNSW index for cosine similarity search
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE INDEX document_embeddings_embedding_hnsw_idx
+              ON document_embeddings
+              USING hnsw (embedding vector_cosine_ops)
+              WITH (m = 16, ef_construction = 64);
+            
+

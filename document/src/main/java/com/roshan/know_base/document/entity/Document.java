@@ -6,7 +6,10 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -30,7 +33,17 @@ public class Document extends AuditedEntity {
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> metaData;
 
+    @Column(name = "user_id")
+    private UUID userId;
+
     @Version
     private Long version;
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "document_tags",
+            joinColumns = @JoinColumn(name = "document_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
 
 }

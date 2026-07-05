@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -24,13 +25,16 @@ public class DocumentController {
 
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ApiResponse<DocumentResponse>> uploadDocument(
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "tags", required = false) List<String> tags
+            ) {
 
         if (file.isEmpty()) {
             throw new DocumentProcessingException("Cannot upload an empty file.", ErrorCode.INVALID_REQUEST, HttpStatus.BAD_REQUEST);
         }
-        return ApiResponseHelper.successResponse(documentService.uploadDocument(file), "Document Uploaded Successfully.", HttpStatus.CREATED);
+        return ApiResponseHelper.successResponse(documentService.uploadDocument(file,tags), "Document Uploaded Successfully.", HttpStatus.CREATED);
     }
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<DocumentResponse>> getDocument(@PathVariable UUID id) {
