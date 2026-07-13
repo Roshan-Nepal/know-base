@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_user_id
+      author: Roshan Nepal
+      changes:
+        - addColumn:
+            schemaName: public
+            tableName: document_embeddings
+            columns:
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: true
+
