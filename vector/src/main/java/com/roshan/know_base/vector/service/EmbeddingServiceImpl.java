@@ -24,7 +24,7 @@ public class EmbeddingServiceImpl implements EmbeddingService{
     @Override
     @Async
     @Transactional
-    public void embedAndStoreChunks(List<ChunkEmbeddingRequest> embeddingRequestList) {
+    public void embedAndStoreChunks(List<ChunkEmbeddingRequest> embeddingRequestList, UUID userId) {
         for(ChunkEmbeddingRequest chunkToEmbed : embeddingRequestList){
             UUID chunkId = chunkToEmbed.chunkId();
             String content = chunkToEmbed.content();
@@ -35,6 +35,7 @@ public class EmbeddingServiceImpl implements EmbeddingService{
             DocumentEmbedding documentEmbedding = DocumentEmbedding.builder()
                     .chunkID(chunkId)
                     .embedding(vector)
+                    .userId(userId)
                     .build();
             vectorRepository.save(documentEmbedding);
         }

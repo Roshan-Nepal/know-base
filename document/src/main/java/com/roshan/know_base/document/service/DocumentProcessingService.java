@@ -63,6 +63,6 @@ public class DocumentProcessingService {
 
         documentContentRepo.save(documentContent);
         log.info("Async finished processing");
-        applicationEventPublisher.publishEvent(new TextExtractedEvent(savedDocument.getId()));
+        applicationEventPublisher.publishEvent(new TextExtractedEvent(savedDocument.getId(), savedDocument.getUserId()));
     }
 }

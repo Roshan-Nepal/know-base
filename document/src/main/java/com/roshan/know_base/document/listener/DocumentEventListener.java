@@ -42,7 +42,7 @@ public class DocumentEventListener {
             //chunk the texts
             List<ChunkEmbeddingRequest> chunks = chunkingService.createChunks(event.documentId());
             // embed the texts
-            embeddingService.embedAndStoreChunks(chunks);
+            embeddingService.embedAndStoreChunks(chunks, event.userId());
         } catch (Exception e){
             log.error("Failed to process chunks for document: {}", event.documentId(), e);
             throw new DocumentProcessingException("Failed to process chunks for document : {}" +  event.documentId(),

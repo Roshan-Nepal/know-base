@@ -24,8 +24,8 @@ public class DocumentEmbedding extends BaseEntity {
     @Column(name = "chunk_id")
     private UUID chunkID;
 
-//    @Column(name = "user_id")
-//    private UUID userId;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @JdbcTypeCode(SqlTypes.VECTOR)
     @Column(columnDefinition = "vector(768)")
