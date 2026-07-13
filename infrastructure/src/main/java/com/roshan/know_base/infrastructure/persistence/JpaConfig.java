@@ -11,12 +11,14 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.roshan.know_base.auth.repo",
         "com.roshan.know_base.document.repo",
         "com.roshan.know_base.vector.repo",
+        "com.roshan.know_base.ai.repo",
         }
 )
 @EntityScan(basePackages = {
         "com.roshan.know_base.auth.entity",
         "com.roshan.know_base.document.entity",
         "com.roshan.know_base.vector.entity",
+        "com.roshan.know_base.ai.entity",
 })
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class JpaConfig {
