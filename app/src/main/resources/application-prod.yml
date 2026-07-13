@@ -17,12 +17,7 @@ spring:
       api-key: ${AI_API_KEY}
 
       chat:
-        options:
-          model: llama-3.3-70b-versatile
-
-      embedding:
-        options:
-          model: text-embedding-3-small
+        model: llama-3.3-70b-versatile
 springdoc:
   api-docs:
     enabled: false

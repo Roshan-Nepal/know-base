@@ -19,9 +19,7 @@ spring:
       base-url: http://localhost:11434
 
       embedding:
-        options:
-          model: nomic-embed-text
+        model: nomic-embed-text
 
       chat:
-        options:
-          model: llama3
+        model: llama3.2
