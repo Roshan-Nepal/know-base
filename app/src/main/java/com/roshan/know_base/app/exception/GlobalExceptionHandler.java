@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
@@ -34,8 +35,14 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request){
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + " : " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
         return buildProblemDetail(HttpStatus.CONFLICT,
-                ex.getBody().getDetail(),
+                message,
                 HttpStatus.CONFLICT.name(),
                 request.getRequestURI());
     }
