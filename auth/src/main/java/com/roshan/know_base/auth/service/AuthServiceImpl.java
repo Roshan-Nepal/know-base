@@ -97,6 +97,13 @@ public class AuthServiceImpl implements AuthService {
                         ErrorCode.NOT_FOUND,
                         HttpStatus.NOT_FOUND
                 ));
+        if (!changePasswordRequest.newPassword().equals(changePasswordRequest.confirmPassword())) {
+            throw new BadRequestException(
+                    "New password and confirm password must be same.",
+                    ErrorCode.INVALID_REQUEST,
+                    HttpStatus.BAD_REQUEST
+            );
+        }
         if (!passwordEncoder.matches(changePasswordRequest.oldPassword(), user.getPassword())) {
             throw new BadRequestException(
                     "Current password is incorrect",
@@ -118,8 +125,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String refreshToken(String refreshToken) {
-        if(refreshToken == null){
-            throw new AuthException("Refresh token is missing",ErrorCode.REFRESH_TOKEN_MISSING, HttpStatus.UNAUTHORIZED);
+        if (refreshToken == null) {
+            throw new AuthException("Refresh token is missing", ErrorCode.REFRESH_TOKEN_MISSING, HttpStatus.UNAUTHORIZED);
         }
         if (!jwtUtil.isTokenValid(refreshToken)) {
             throw new JwtException("Invalid or expired refresh token.");

@@ -2,30 +2,23 @@ package com.roshan.know_base.document.service;
 
 import com.roshan.know_base.common.enums.ErrorCode;
 import com.roshan.know_base.common.exception.NotFoundException;
+import com.roshan.know_base.common.security.CurrentUserProvider;
 import com.roshan.know_base.document.dto.DocumentResponse;
-import com.roshan.know_base.document.entity.Document;
-import com.roshan.know_base.document.entity.DocumentContent;
-import com.roshan.know_base.document.entity.DocumentStatus;
-import com.roshan.know_base.document.entity.DocumentType;
+import com.roshan.know_base.document.entity.*;
 import com.roshan.know_base.document.event.DocumentCreatedEvent;
-import com.roshan.know_base.document.exception.DocumentProcessingException;
 import com.roshan.know_base.document.mapper.DocumentMapper;
 import com.roshan.know_base.document.repo.DocumentContentRepo;
 import com.roshan.know_base.document.repo.DocumentRepo;
+import com.roshan.know_base.document.repo.TagRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -37,11 +30,13 @@ public class DocumentServiceImpl implements DocumentService{
     private final DocumentMapper documentMapper;
     private final ApplicationEventPublisher publisher;
     private final DocumentContentRepo contentRepo;
+    private final CurrentUserProvider userProvider;
+    private final TagRepo tagRepo;
     @Override
     @Transactional
-    public DocumentResponse uploadDocument(MultipartFile file) {
+    public DocumentResponse uploadDocument(MultipartFile file, List<String> tags) {
         log.info("Receiving document upload: {}", file.getOriginalFilename());
-
+        UUID currentUserId = userProvider.getCurrentUserId();
         UUID docID = UUID.randomUUID();
         String storage = storageService.store(file, docID);
         Map<String, Object> metaData = Map.of(
@@ -52,11 +47,24 @@ public class DocumentServiceImpl implements DocumentService{
                 .fileSize(file.getSize())
                 .type(type)
                 .storage(storage)
+                .userId(currentUserId)
                 .name(file.getOriginalFilename())
                 .metaData(metaData)
                 .status(DocumentStatus.PROCESSING)
                 .build();
 
+        if (tags != null && !tags.isEmpty()) {
+            Set<Tag> tagSet = new HashSet<>();
+            for (String tagName : tags) {
+                String normalizedName = tagName.trim().toLowerCase();
+
+                Tag tagObj = tagRepo.findByNameAndUserId(normalizedName, currentUserId)
+                        .orElseGet(() -> tagRepo.save(new Tag(normalizedName, currentUserId)));
+
+                tagSet.add(tagObj);
+            }
+            document.setTags(tagSet);
+        }
         Document savedDoc = repo.save(document);
         publisher.publishEvent(new DocumentCreatedEvent(savedDoc.getId()));
         return documentMapper.toResponse(savedDoc);
