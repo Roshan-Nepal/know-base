@@ -18,6 +18,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - knowbase-net
 
   api:
     build:
@@ -29,20 +31,32 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/know_base
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://know-base-postgres:5432/know_base
       - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - STORAGE_PATH=${DOCKER_STORAGE_PATH}
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - knowbase-net
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+    volumes:
+      - storage_data:/app/storage
+
+networks:
+  knowbase-net:
+    driver: bridge
 
 volumes:
   pgdata:
     name: know_base_pgdata
+
+  storage_data:
+    name: know_base_storage
