@@ -1,0 +1,75 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-version-and-soft-delete-columns-to-users-table
+      author: Roshan Nepal
+
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: deleted_by
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: true
+  - changeSet:
+      id: add-version-and-soft-delete-columns-to-documents-table
+      author: Roshan Nepal
+      changes:
+        - addColumn:
+            tableName: documents
+            columns:
+              - column:
+                  name: deleted_by
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: add-version-column-to-roles-table
+      author: Roshan Nepal
+
+      changes:
+        - addColumn:
+            tableName: roles
+            columns:
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: add-version-column-to-tags-table
+      author: Roshan Nepal
+
+      changes:
+        - addColumn:
+            tableName: tags
+            columns:
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

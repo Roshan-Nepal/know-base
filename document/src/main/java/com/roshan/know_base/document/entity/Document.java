@@ -1,9 +1,10 @@
 package com.roshan.know_base.document.entity;
 
-import com.roshan.know_base.common.entity.AuditedEntity;
+import com.roshan.know_base.common.entity.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
 
 import java.util.HashSet;
@@ -18,7 +19,8 @@ import java.util.UUID;
 @Table(name = "documents")
 @Entity
 @Builder
-public class Document extends AuditedEntity {
+@SQLRestriction("deleted_at IS NULL")
+public class Document extends SoftDeletableEntity {
     private String name;
     private String storage;
     @Enumerated(EnumType.STRING)
@@ -35,9 +37,6 @@ public class Document extends AuditedEntity {
 
     @Column(name = "user_id")
     private UUID userId;
-
-    @Version
-    private Long version;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "document_tags",

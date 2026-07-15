@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-version-column-to-documents
+      author: Roshan Nepal
+      changes:
+        - addColumn:
+            tableName: documents
+            columns:
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

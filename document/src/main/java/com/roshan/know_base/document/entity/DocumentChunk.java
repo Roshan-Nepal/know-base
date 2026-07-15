@@ -1,11 +1,11 @@
 package com.roshan.know_base.document.entity;
 
-import com.roshan.know_base.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "document_chunks")
@@ -14,7 +14,10 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @Builder
-public class DocumentChunk extends BaseEntity {
+public class DocumentChunk  {
+
+    @Id
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id", nullable = false)

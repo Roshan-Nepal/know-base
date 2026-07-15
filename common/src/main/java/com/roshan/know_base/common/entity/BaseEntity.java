@@ -20,4 +20,6 @@ public abstract class BaseEntity {
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
+    @Version
+    private Long version;
 }
