@@ -8,6 +8,7 @@ import com.roshan.know_base.auth.repo.UserRepo;
 import com.roshan.know_base.common.dto.PageResponse;
 import com.roshan.know_base.common.enums.ErrorCode;
 import com.roshan.know_base.common.exception.NotFoundException;
+import com.roshan.know_base.common.security.CurrentUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,14 +25,14 @@ public class UserServiceImpl implements UserService{
 
     private final UserRepo userRepo;
     private final UserMapper mapper;
+    private final CurrentUserProvider userProvider;
 
     @Override
     @Transactional(readOnly = true)
     public Page<UserResponse> getAll(int pageNumber, int size) {
         Pageable pageable = PageRequest.of(pageNumber, size);
-        Page<UserResponse> page = userRepo.findAll(pageable)
+        return userRepo.findAll(pageable)
                 .map(mapper::toResponse);
-         return page;
     }
 
     @Override
@@ -43,7 +44,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public void delete(UUID id) {
         User user = findUserOrThrow(id);
-        userRepo.delete(user);
+        user.softDelete(userProvider.getCurrentUsername());
     }
 
 

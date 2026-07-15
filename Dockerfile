@@ -37,4 +37,5 @@ ENTRYPOINT ["java", \
             "-XX:InitialRAMPercentage=50.0", \
             "-XX:+UseZGC", \
             "-Djava.security.egd=file:/dev/./urandom", \
+            "-Djava.net.preferIPv4Stack=true", \
             "org.springframework.boot.loader.launch.JarLauncher"]

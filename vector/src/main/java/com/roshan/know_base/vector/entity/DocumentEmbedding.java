@@ -3,6 +3,7 @@ package com.roshan.know_base.vector.entity;
 import com.roshan.know_base.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -19,7 +20,10 @@ import java.util.UUID;
 @Builder
 @Table(name = "document_embeddings")
 @Entity
-public class DocumentEmbedding extends BaseEntity {
+public class DocumentEmbedding {
+
+    @Id
+    private UUID id;
 
     @Column(name = "chunk_id")
     private UUID chunkID;
@@ -34,7 +38,5 @@ public class DocumentEmbedding extends BaseEntity {
     @Column(name = "created_at", updatable = false)
     @CreatedDate
     private LocalDateTime createdAt;
-
-
 
 }
