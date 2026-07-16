@@ -19,7 +19,7 @@ import java.util.UUID;
 @Service
 public class LocalStorageService implements StorageService{
     private final Path rootLocation;
-    public LocalStorageService(@Value("${knwo-base.storage.local.path:./storage}") String path){
+    public LocalStorageService(@Value("${know-base.storage.local.path:./storage}") String path){
         this.rootLocation = Paths.get(path);
     }
 

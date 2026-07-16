@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.roshan.know_base.common.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,7 +16,8 @@ import java.util.Set;
 @NoArgsConstructor
 @Table(name = "users")
 @Entity
-public class User extends AuditedEntity {
+@SQLRestriction("deleted_at IS NULL")
+public class User extends SoftDeletableEntity {
     private String username;
     @JsonIgnore
     private String password;

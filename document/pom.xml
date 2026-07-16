@@ -38,6 +38,11 @@
             <artifactId>tika-parsers-standard-package</artifactId>
             <version>3.3.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.roshan</groupId>
+            <artifactId>vector</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 </project>

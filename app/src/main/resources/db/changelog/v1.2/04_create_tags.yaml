@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-tags
+      author: Roshan Nepal
+      comment: Tags and document-tag join table
+      changes:
+        - createTable:
+            tableName: tags
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    foreignKeyName: fk_tag_user
+                    references: users(id)
+                    deleteCascade: true
+
+        - addUniqueConstraint:
+            tableName: tags
+            columnNames: name, user_id
+            constraintName: uq_tag_name_user
+
+        - createTable:
+            tableName: document_tags
+            columns:
+              - column:
+                  name: document_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_doctag_doc
+                    references: documents(id)
+                    deleteCascade: true
+              - column:
+                  name: tag_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_doctag_tag
+                    references: tags(id)
+                    deleteCascade: true
+
+        - addPrimaryKey:
+            tableName: document_tags
+            columnNames: document_id, tag_id
+            constraintName: pk_document_tags

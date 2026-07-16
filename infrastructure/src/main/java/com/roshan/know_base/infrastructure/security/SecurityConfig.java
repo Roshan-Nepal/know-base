@@ -1,7 +1,7 @@
 package com.roshan.know_base.infrastructure.security;
 
 import com.roshan.know_base.common.constant.SecurityConstants;
-import com.roshan.know_base.common.security.JwtUtil;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 .policyDirectives("default-src 'self'"))
                 )
                 .authorizeHttpRequests(auth -> auth
+                                .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
                                 .requestMatchers(SecurityConstants.PUBLIC_URLS
                                 ).permitAll()
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

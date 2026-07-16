@@ -6,8 +6,12 @@ import com.roshan.know_base.document.exception.DocumentProcessingException;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.sax.BodyContentHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.xml.sax.SAXException;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -19,10 +23,21 @@ public class ParserService {
         this.tika = tika;
     }
 
+    /**
+     * Extracts the text from an InputStream
+     * @param inputStream the inputStream from which the text is to be extracted
+     * @return extracted text from the inputStream
+     * @throws DocumentProcessingException if the file is corrupted or parsing fails
+     */
     public String extractText(InputStream inputStream){
         try{
-            return tika.parseToString(inputStream, new Metadata());
-        }catch (IOException | TikaException e){
+            // limit extraction to 10,000,00 i.e 10MB
+            // to prevents OutOfMemory crash on malicious and massive file
+            BodyContentHandler handler = new BodyContentHandler(10_000_000);
+            Metadata metadata = new Metadata();
+            tika.getParser().parse(inputStream, handler, metadata, new ParseContext());
+            return handler.toString();
+        }catch (IOException | TikaException | SAXException e){
             throw new DocumentProcessingException("Document failed processing", ErrorCode.DOCUMENT_PROCESSING_FAILED, HttpStatus.UNPROCESSABLE_CONTENT);
         }
     }

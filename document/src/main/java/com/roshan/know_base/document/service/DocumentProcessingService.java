@@ -5,11 +5,13 @@ import com.roshan.know_base.document.entity.Document;
 import com.roshan.know_base.document.entity.DocumentContent;
 import com.roshan.know_base.document.entity.DocumentStatus;
 import com.roshan.know_base.document.entity.DocumentType;
+import com.roshan.know_base.document.event.TextExtractedEvent;
 import com.roshan.know_base.document.exception.DocumentProcessingException;
 import com.roshan.know_base.document.repo.DocumentContentRepo;
 import com.roshan.know_base.document.repo.DocumentRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class DocumentProcessingService {
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final DocumentContentRepo documentContentRepo;
     private final DocumentRepo repo;
     private final StorageService storageService;
@@ -60,6 +63,6 @@ public class DocumentProcessingService {
 
         documentContentRepo.save(documentContent);
         log.info("Async finished processing");
-
+        applicationEventPublisher.publishEvent(new TextExtractedEvent(savedDocument.getId(), savedDocument.getUserId()));
     }
 }
