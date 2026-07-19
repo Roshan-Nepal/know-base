@@ -14,6 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class DocumentContent {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
