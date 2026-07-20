@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public abstract class SoftDeletableEntity extends AuditedEntity{
     @Column(name = "deleted_by")
     private String deletedBy;
-    @Column(name = "deleted_At")
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     public void softDelete(String username){
