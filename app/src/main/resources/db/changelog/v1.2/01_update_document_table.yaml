@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 0
-      author: admin
+      author: Roshan Nepal
       changes:
         - addColumn:
             tableName: documents

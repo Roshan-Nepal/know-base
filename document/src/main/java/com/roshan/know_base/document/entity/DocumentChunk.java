@@ -17,6 +17,7 @@ import java.util.UUID;
 public class DocumentChunk  {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)

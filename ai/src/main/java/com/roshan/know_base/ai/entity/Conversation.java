@@ -18,6 +18,7 @@ import java.util.UUID;
 @Builder
 public class Conversation{
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "user_id", nullable = false)
