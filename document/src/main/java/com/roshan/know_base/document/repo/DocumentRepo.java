@@ -8,4 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface DocumentRepo extends JpaRepository<Document, UUID> {
+
+    long countByUserId(UUID userId);
 }
