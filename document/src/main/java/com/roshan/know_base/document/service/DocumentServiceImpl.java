@@ -13,6 +13,10 @@ import com.roshan.know_base.document.repo.TagRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,6 +84,24 @@ public class DocumentServiceImpl implements DocumentService{
                 .map(DocumentContent::getContent)
                 .orElse("");
         return documentMapper.toResponse(document, content);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<DocumentResponse> getAll(int pageNumber, int size) {
+        Pageable pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return repo.findAllByUserId(userProvider.getCurrentUserId(), pageable)
+                .map(documentMapper::toResponse);
+    }
+
+    @Override
+    @Transactional
+    public void delete(UUID id) {
+        Document document = repo.findById(id).orElseThrow(() -> new NotFoundException(
+                "Document not for id: "+ id, ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND
+        ));
+        document.softDelete(userProvider.getCurrentUsername());
+        repo.delete(document);
     }
 
 
