@@ -4,12 +4,14 @@ import com.roshan.know_base.common.exception.BaseException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.net.URI;
 import java.time.Instant;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+    @Value("${spring.servlet.multipart.max-file-size}")
+    private String maxFileSize;
 
     @ExceptionHandler(BaseException.class)
     public ProblemDetail handleBaseException(BaseException ex, HttpServletRequest request){
@@ -26,6 +30,16 @@ public class GlobalExceptionHandler {
                 ex.getErrorCode().name(),
                 request.getRequestURI());
     }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ProblemDetail handleSizeExceededException(MaxUploadSizeExceededException e, HttpServletRequest request){
+        return buildProblemDetail(HttpStatus.CONTENT_TOO_LARGE,
+                "File size exceeds the maximum allowed size of " + maxFileSize,
+                HttpStatus.CONTENT_TOO_LARGE.name(),
+                request.getRequestURI()
+                );
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request){
         return buildProblemDetail(HttpStatus.CONFLICT,
