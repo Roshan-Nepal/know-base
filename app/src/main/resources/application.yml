@@ -24,6 +24,10 @@ spring:
       max-file-size: 25MB
       max-request-size: 25MB
 
+  threads:
+    virtual:
+      enabled: true
+
 app:
   cors:
     allowed-origins: ${ALLOWED_ORIGINS}

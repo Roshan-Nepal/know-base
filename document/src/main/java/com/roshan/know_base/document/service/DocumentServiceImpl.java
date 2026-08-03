@@ -3,6 +3,7 @@ package com.roshan.know_base.document.service;
 import com.roshan.know_base.common.enums.ErrorCode;
 import com.roshan.know_base.common.exception.NotFoundException;
 import com.roshan.know_base.common.security.CurrentUserProvider;
+import com.roshan.know_base.document.dto.DocumentDetailResponse;
 import com.roshan.know_base.document.dto.DocumentResponse;
 import com.roshan.know_base.document.entity.*;
 import com.roshan.know_base.document.event.DocumentCreatedEvent;
@@ -76,7 +77,7 @@ public class DocumentServiceImpl implements DocumentService{
 
     @Override
     @Transactional(readOnly = true)
-    public DocumentResponse get(UUID id) {
+    public DocumentDetailResponse get(UUID id) {
         Document document = repo.findById(id).orElseThrow(() -> new NotFoundException(
                 "Document not for id: "+ id, ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND
         ));
