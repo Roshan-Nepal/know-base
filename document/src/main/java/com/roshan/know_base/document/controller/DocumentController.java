@@ -4,6 +4,7 @@ import com.roshan.know_base.common.dto.ApiResponse;
 import com.roshan.know_base.common.dto.PageResponse;
 import com.roshan.know_base.common.enums.ErrorCode;
 import com.roshan.know_base.common.helper.ApiResponseHelper;
+import com.roshan.know_base.document.dto.DocumentDetailResponse;
 import com.roshan.know_base.document.dto.DocumentResponse;
 import com.roshan.know_base.document.exception.DocumentProcessingException;
 import com.roshan.know_base.document.service.DocumentService;
@@ -49,7 +50,7 @@ public class DocumentController {
             description = "Retrieves a document by its unique identifier."
     )
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<DocumentResponse>> getDocument(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<DocumentDetailResponse>> getDocument(@PathVariable UUID id) {
 
         return ApiResponseHelper.successResponse(documentService.get(id), "Ok.");
 
