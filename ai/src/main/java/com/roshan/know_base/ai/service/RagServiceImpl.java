@@ -8,18 +8,17 @@ import com.roshan.know_base.vector.service.EmbeddingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,129 +31,132 @@ public class RagServiceImpl implements RagService {
     private final ConversationService conversationService;
     private final ChatClient chatClient;
     private final CurrentUserProvider userProvider;
+    private final ChatMemory chatMemory;
 
     private static final String SYSTEM_PROMPT = """
             You are an advanced, helpful assistant connected to the user's personal knowledge base.
             Answer the user's question using ONLY the provided document context blocks.
             
+            Allowed exceptions:
+            - If the user greets you, respond with a short friendly greeting.
+            - If the user thanks you, respond briefly and politely.
+            - If the user says goodbye, respond briefly.
+            
             Strict Guidelines:
-            1. Reply only on the clear facts mentioned directly in the context.
-            2. Do not assume, extrapolate, or bring in external training data.
-            3. If the context does not contain the answer, say exactly: "I cannot find sufficient information in your documents to answer this."
+            - Answer ONLY using information explicitly present in the provided context.
+            - Never answer from your own knowledge.
+            - Never translate text.
+            - Never explain general concepts.
+            - Never answer trivia, coding, math, language, or world knowledge questions unless that information appears in the context.
+            - Do not infer or make reasonable assumptions.
             
             Context:
             {context}
             """;
 
+    private static final int TOP_K = 5;
+
+    private static final String FALLBACK_RESPONSE =
+            "I cannot find sufficient information in your documents to answer this.";
+
     @Transactional
-    public SseEmitter processChat(UUID conversationId, String userQuestion) {
-        SseEmitter emitter = new SseEmitter(0L); // no time out
+    public Flux<String> processChat(UUID conversationId, String userQuestion) {
+
         log.info("Processing RAG query for conversation: {}", conversationId);
-        UUID userId = userProvider.getCurrentUserId();
+
+        var userId = userProvider.getCurrentUserId();
+
         // Save the user's prompt to the chat history
-        conversationService.addMessageToConversation(conversationId, MessageRole.USER, userQuestion, List.of());
+        conversationService.addMessageToConversation(
+                conversationId,
+                MessageRole.USER,
+                userQuestion,
+                List.of());
 
         // RETRIEVE: Vector search to find the 5 most relevant chunk IDs
-        List<UUID> matchingChunkIds = embeddingService.findSimilarChunks(userQuestion, userId, 5);
+        var matchingChunkIds =
+                embeddingService.findSimilarChunks(userQuestion, userId, TOP_K);
 
-        // If no relevant chunks are found, return a fallback response.
         if (matchingChunkIds.isEmpty()) {
-            String fallbackAnswer = "I cannot find sufficient information in your documents to answer this.";
-            conversationService.addMessageToConversation(conversationId, MessageRole.ASSISTANT, fallbackAnswer, List.of());
-            try {
-                emitter.send(SseEmitter.event()
-                        .name("message")
-                        .data(fallbackAnswer));
-            } catch (Exception e) {
-                log.error("Error while stream : {}", e.getMessage());
-                emitter.completeWithError(e);
-            }
-            return emitter;
+            conversationService.addMessageToConversation(
+                    conversationId,
+                    MessageRole.ASSISTANT,
+                    FALLBACK_RESPONSE,
+                    List.of()
+            );
+            return Flux.just(FALLBACK_RESPONSE);
         }
+        log.debug(
+                "Retrieved {} matching chunks for conversation {}",
+                matchingChunkIds.size(),
+                conversationId
+        );
 
         // FETCH TEXT: load the text for those chunk IDs
-        List<DocumentChunk> relevantChunks = documentChunkRepo.findAllById(matchingChunkIds);
+        var relevantChunks =
+                documentChunkRepo.findAllById(matchingChunkIds);
 
         // AUGMENT: Compile the context text
-        String formattedContext = relevantChunks.stream()
-                .map(chunk -> String.format("[Doc: %s, Chunk: %s]\n%s",
-                        chunk.getDocument().getName(),
-                        chunk.getId(),
-                        chunk.getContent()
-                ))
-                .collect(Collectors.joining("\n\n--\n\n"));
+        var formattedContext = buildContext(relevantChunks);
 
-        PromptTemplate promptTemplate = new PromptTemplate(SYSTEM_PROMPT);
-        Prompt prompt = promptTemplate.create(Map.of("context", formattedContext));
+        Prompt prompt = createPrompt(formattedContext);
+
 
         // GENERATE: Request generation
-        log.debug("Sending compiled context prompt to LLM");
+        return generateResponse(prompt, conversationId, matchingChunkIds, userQuestion);
 
-        // Holds the full streamed LLM response incrementally as tokens arrive.
-        // Since the response is received in chunks (streaming), we append each token
-        // to a StringBuilder inside an AtomicReference to safely accumulate state
-        // across reactive callbacks.
-        // Once the stream completes, the full aggregated response is persisted
-        // to the conversation history along with the retrieved context chunk IDs.
-        AtomicReference<StringBuilder> buffer = new AtomicReference<>(new StringBuilder());
-        AtomicReference<String> modelRef = new AtomicReference<>();
-        AtomicReference<Long> tokensRef = new AtomicReference<>(0L);
-        //stream from LLM
-        chatClient.prompt(prompt)
+    }
+
+
+    private String buildContext(List<DocumentChunk> chunks){
+        return chunks.stream()
+                .map(chunk -> String.format(
+                        "[Doc: %s, Chunk: %s]\n%s",
+                        chunk.getDocument().getName(),
+                        chunk.getId(),
+                        chunk.getContent()))
+                .collect(Collectors.joining("\n\n--\n\n"));
+    }
+
+    private Prompt createPrompt(String context){
+        return new PromptTemplate(SYSTEM_PROMPT)
+                .create(Map.of("context", context));
+    }
+
+    private Flux<String> generateResponse(
+            Prompt prompt,
+            UUID conversationId,
+            List<UUID> matchingChunkIds,
+            String userQuestion) {
+        StringBuilder builder = new StringBuilder();
+        return chatClient.prompt(prompt)
+                .advisors(a ->
+                    a.advisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                            .param(ChatMemory.CONVERSATION_ID, conversationId.toString())
+                )
                 .user(userQuestion)
                 .stream()
                 .chatResponse()
-                .doOnNext(response -> {
 
-                            String token = response.getResult()
-                                    .getOutput()
-                                    .getText();
-
-
-                            buffer.get().append(token);
-
-                            // model info (set once)
-                            if (modelRef.get() == null) {
-                                modelRef.set(response.getMetadata().getModel());
-                            }
-
-                            // token usage (if provider supports it)
-                            if (response.getMetadata().getUsage() != null) {
-                                tokensRef.set((long) response.getMetadata().getUsage().getTotalTokens());
-                            }
-
-                            try {
-                                emitter.send(SseEmitter.event()
-                                        .name("token")
-                                        .data(token));
-                            } catch (Exception e) {
-                                emitter.completeWithError(e);
-                            }
+                .map(response ->
+                        response.getResult().getOutput().getText()
+                )
+                .doOnNext(builder::append)
+                .doOnComplete(() -> {
+                            conversationService.addMessageToConversation(
+                                    conversationId,
+                                    MessageRole.ASSISTANT,
+                                    builder.toString(),
+                                    matchingChunkIds);
+                            log.info(
+                                    "Completed RAG response for conversation {}",
+                                    conversationId);
                         }
                 )
-                .doOnComplete(() -> {
-                    log.info("LLM completed");
-                    conversationService.addMessageToConversation(
-                            conversationId,
-                            MessageRole.ASSISTANT,
-                            buffer.get().toString(),
-                            matchingChunkIds);
-                    try {
-                        emitter.send(SseEmitter.event()
-                                .name("DONE")
-                                .data("[DONE]")
-                        );
-                        emitter.complete();
-                    } catch (Exception e) {
-                        log.error("Error while stream : {}", e.getMessage());
-                        emitter.completeWithError(e);
-                    }
-                })
-                .doOnError(ex -> {
-                    log.error("LLM error", ex);
-                    emitter.completeWithError(ex);
-                })
-                .subscribe();
-        return emitter;
+                .doOnError(ex ->
+                        log.error(
+                                "Failed to generate response for conversation {}",
+                                conversationId,
+                                ex));
     }
 }

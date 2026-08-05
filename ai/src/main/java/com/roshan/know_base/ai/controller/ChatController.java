@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import reactor.core.publisher.Flux;
 
 import java.util.UUID;
 
@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(
         name = "Chat",
-        description = "Chat with the assistant using Server-Sent Events (SSE)."
+        description = "Chat with the assistant with streaming support."
 )
 public class ChatController {
 
@@ -30,7 +30,7 @@ public class ChatController {
     private final CurrentUserProvider userProvider;
 
     @PostMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter sendMessage(@RequestBody ChatRequest request){
+    public Flux<String> sendMessage(@RequestBody ChatRequest request){
         UUID userId = userProvider.getCurrentUserId();
         UUID conversationId = request.conversationId();
         String userMessage = request.message();
