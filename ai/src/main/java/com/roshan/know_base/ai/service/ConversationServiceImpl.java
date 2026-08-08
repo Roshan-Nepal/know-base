@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,6 +52,7 @@ public class ConversationServiceImpl implements ConversationService{
 
         Conversation conversation = Conversation.builder()
                 .userId(userId)
+                .createdAt(LocalDateTime.now())
                 .title(title)
                 .build();
 
@@ -83,6 +85,7 @@ public class ConversationServiceImpl implements ConversationService{
                 .role(role)
                 .content(content)
                 .sourceChunks(sourceChunks)
+                .createdAt(LocalDateTime.now())
                 .build();
 
         messageRepository.save(message);
